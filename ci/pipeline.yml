@@ -1,0 +1,106 @@
+---
+staging-cf: &staging-cf
+  CF_API: ((staging-cf-api))
+  CF_USERNAME: ((staging-cf-username))
+  CF_PASSWORD: ((staging-cf-password))
+  CF_ORG: ((staging-cf-org))
+  CF_SPACE: ((staging-cf-space))
+  MIRROR_HOSTNAME: ((staging-mirror-hostname))
+
+jobs:
+
+- name: deploy-registry-staging
+  serial_groups: [mirror]
+  plan:
+  - in_parallel: 
+    - get: registry-source
+      trigger: true
+      params: {depth: 1}
+    - get: registry-image
+      trigger: true
+    - get: ci-source
+      params: {depth: 1}
+  - task: create-s3-bucket
+    file: ci-source/ci/tasks/create-s3-bucket.yml
+    params:
+      <<: *staging-cf
+  - task: deploy-registry
+    file: ci-source/ci/tasks/deploy-registry.yml
+    params:
+      <<: *staging-cf
+    on_failure:
+      task: cancel-deployment
+      file: ci-source/ci/tasks/cancel-deployment.yml
+      params:
+        <<: *staging-cf
+        CF_APP_NAME: docker-registry-mirror
+
+- name: deploy-proxy-staging
+  serial_groups: [proxy]
+  plan:
+  - in_parallel:
+    - get: nginx-allow-conf
+      trigger: true
+    - get: nginx-set-real-ip-from-conf
+      trigger: true
+    - get: proxy-source
+      trigger: true
+      params: {depth: 1}
+    - get: ci-source
+      params: {depth: 1}
+  - task: deploy-proxy
+    file: ci-source/ci/tasks/deploy-proxy.yml
+    params: 
+      <<: *staging-cf
+    on_failure:
+      task: cancel-deployment
+      file: ci-source/ci/tasks/cancel-deployment.yml
+      params:
+        <<: *staging-cf
+        CF_APP_NAME: docker-registry-proxy
+
+resources:
+
+- name: ci-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [ci/*]
+
+- name: nginx-allow-conf
+  type: s3-iam
+  source:
+    bucket: ((concourse-varz-bucket))
+    region_name: ((concourse-varz-bucket-region))
+    versioned_file: docker-registry-mirror/nginx/nginx-allow.conf
+
+- name: nginx-set-real-ip-from-conf
+  type: s3-iam
+  source:
+    bucket: ((concourse-varz-bucket))
+    region_name: ((concourse-varz-bucket-region))
+    versioned_file: docker-registry-mirror/nginx/nginx-set-real-ip-from.conf
+
+- name: proxy-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [proxy/*]
+
+- name: registry-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [registry/*]
+
+- name: registry-image
+  type: registry-image
+  source:
+    repository: registry
+
+resource_types:
+
+- name: s3-iam
+  type: registry-image
+  source:
+    repository: 18fgsa/s3-resource

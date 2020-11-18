@@ -1,0 +1,14 @@
+---
+
+applications:
+- name: docker-registry-proxy
+  memory: 256M
+  disk_quota: 256M
+  instances: 2
+  path: nginx
+  buildpacks:
+  - nginx_buildpack
+  routes:
+  - route: ((route))
+  env:
+    MIRROR_ROUTE: ((mirror-hostname)).apps.internal
