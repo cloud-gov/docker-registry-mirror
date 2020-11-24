@@ -3,7 +3,7 @@
 applications:
 - name: docker-registry-mirror
   memory: 256M
-  instances: 2
+  instances: 4
   docker:
     image: registry
   env:

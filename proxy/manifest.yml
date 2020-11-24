@@ -4,8 +4,8 @@ applications:
 - name: docker-registry-proxy
   memory: 256M
   disk_quota: 256M
-  instances: 2
-  path: nginx
+  instances: 4
+  path: ./nginx
   buildpacks:
   - nginx_buildpack
   routes:
