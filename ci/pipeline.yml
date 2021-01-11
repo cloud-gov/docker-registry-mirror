@@ -33,10 +33,12 @@ jobs:
       params: {depth: 1}
   - task: create-s3-bucket
     file: ci-source/ci/tasks/create-s3-bucket.yml
+    tags: [iaas]
     params:
       <<: *staging-cf
   - task: deploy-registry
     file: ci-source/ci/tasks/deploy-registry.yml
+    tags: [iaas]
     params:
       <<: *staging-cf
     on_failure:
@@ -61,6 +63,7 @@ jobs:
       params: {depth: 1}
   - task: deploy-proxy
     file: ci-source/ci/tasks/deploy-proxy.yml
+    tags: [iaas]
     params: 
       <<: *staging-cf
     on_failure:
@@ -125,3 +128,4 @@ resource_types:
   type: registry-image
   source:
     repository: 18fgsa/s3-resource
+
