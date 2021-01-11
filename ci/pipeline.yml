@@ -89,6 +89,7 @@ resources:
 
 - name: nginx-allow-conf
   type: s3-iam
+  tags: [iaas]
   source:
     bucket: ((concourse-varz-bucket))
     region_name: ((concourse-varz-bucket-region))
@@ -96,6 +97,7 @@ resources:
 
 - name: nginx-set-real-ip-from-conf
   type: s3-iam
+  tags: [iaas]
   source:
     bucket: ((concourse-varz-bucket))
     region_name: ((concourse-varz-bucket-region))
@@ -116,14 +118,14 @@ resources:
     branch: initial-pipeline
 
 - name: docker-registry-image
-  type: registry-image
+  type: docker-image
   source:
     repository: registry
 
 resource_types:
 
 - name: s3-iam
-  type: registry-image
+  type: docker-image
   source:
     repository: 18fgsa/s3-resource
 
