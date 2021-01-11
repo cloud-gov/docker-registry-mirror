@@ -9,16 +9,16 @@ staging-cf: &staging-cf
 
 jobs:
 
-- name: configure-pipeline
-  serial_groups:
-  - mirror
-  - proxy
-  plan:
-  - get: pipeline-source
-    trigger: true
-    params: {depth: 1}
-  - set_pipeline: docker-registry-mirror
-    file: pipeline-source/ci/pipeline.yml
+# - name: configure-pipeline
+#   serial_groups:
+#   - mirror
+#   - proxy
+#   plan:
+#   - get: pipeline-source
+#     trigger: true
+#     params: {depth: 1}
+#   - set_pipeline: docker-registry-mirror
+#     file: pipeline-source/ci/pipeline.yml
 
 - name: deploy-registry-staging
   serial_groups: [mirror]
@@ -72,12 +72,12 @@ jobs:
 
 resources:
 
-- name: pipeline-source
-  type: git
-  source:
-    uri: https://github.com/cloud-gov/docker-registry-mirror.git
-    paths: [ci/pipeline.yml]
-    branch: initial-pipeline
+# - name: pipeline-source
+#   type: git
+#   source:
+#     uri: https://github.com/cloud-gov/docker-registry-mirror.git
+#     paths: [ci/pipeline.yml]
+#     branch: initial-pipeline
 
 - name: ci-source
   type: git
@@ -91,14 +91,14 @@ resources:
   source:
     bucket: ((concourse-varz-bucket))
     region_name: ((concourse-varz-bucket-region))
-    versioned_file: docker-registry-mirror/nginx/nginx-allow.conf
+    versioned_file: docker-registry-mirror/nginx/allow.conf
 
 - name: nginx-set-real-ip-from-conf
   type: s3-iam
   source:
     bucket: ((concourse-varz-bucket))
     region_name: ((concourse-varz-bucket-region))
-    versioned_file: docker-registry-mirror/nginx/nginx-set-real-ip-from.conf
+    versioned_file: docker-registry-mirror/nginx/set_real_ip_from.conf
 
 - name: proxy-source
   type: git
