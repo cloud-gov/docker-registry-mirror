@@ -7,7 +7,7 @@ image_resource:
 
 inputs:
 - name: registry-source
-- name: registry-image
+- name: docker-registry-image
 - name: ci-source
 
 run:
