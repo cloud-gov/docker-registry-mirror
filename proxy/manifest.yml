@@ -11,4 +11,4 @@ applications:
   routes:
   - route: ((route))
   env:
-    MIRROR_ROUTE: ((mirror-hostname)).apps.internal
+    MIRROR_ROUTE: ((mirror_hostname)).apps.internal
