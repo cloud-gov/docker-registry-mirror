@@ -14,6 +14,8 @@ pushd proxy-source/proxy
 
   cp ../../nginx-conf/* .
 
+  cat nginx.conf
+
   cf push -f manifest.yml \
     -p ./nginx.conf \
     --strategy rolling \
