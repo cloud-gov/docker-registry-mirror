@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 cf api $CF_API
 cf auth
 

@@ -6,8 +6,7 @@ image_resource:
     repository: 18fgsa/concourse-task
 
 inputs:
-- name: nginx-allow-conf
-- name: nginx-set-real-ip-from-conf
+- name: nginx-conf
 - name: proxy-source
 - name: ci-source
 

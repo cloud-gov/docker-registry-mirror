@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 cf api $CF_API
 cf auth
 
@@ -9,12 +11,11 @@ space_guid=$(cf space --guid $CF_SPACE)
 
 # assemble the conf
 pushd proxy-source/proxy
-  cp ../../nginx-allow-conf/* nginx/
-  cp ../../nginx-set-real-ip-from-conf/* nginx/
+
+  cp ../../nginx-conf/* nginx/
 
   cf push -f manifest.yml \
     --strategy rolling \
-    --path nginx \
     --var mirror_hostname="${MIRROR_HOSTNAME}" \
     --var route="${MIRROR_HOSTNAME}.app.cloud.gov" 
 popd
