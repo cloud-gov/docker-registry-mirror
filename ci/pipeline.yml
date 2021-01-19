@@ -73,6 +73,20 @@ jobs:
   serial_groups: [mirror,proxy]
   plan:
   - in_parallel:
+    - get: registry-source
+      trigger: true
+      params: {depth: 1}
+      passed: [deploy-registry-staging]
+    - get: docker-registry-image
+      trigger: true
+      passed: [deploy-registry-staging]
+    - get: nginx-conf
+      trigger: true
+      passed: [deploy-proxy-staging]
+    - get: proxy-source
+      trigger: true
+      params: {depth: 1}
+      passed: [deploy-proxy-staging]
     - get: ci-source
       params: {depth: 1}
   - task: test-pull-succeeds
