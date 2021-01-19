@@ -17,7 +17,7 @@ pushd proxy-source/proxy
   cat nginx.conf
 
   cf push -f manifest.yml \
-    -p ./nginx.conf \
+    -p nginx.conf \
     --strategy rolling \
     --var mirror_hostname="${MIRROR_HOSTNAME}" \
     --var route="${MIRROR_HOSTNAME}.app.cloud.gov" 
