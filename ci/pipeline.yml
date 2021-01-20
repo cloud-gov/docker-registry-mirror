@@ -92,6 +92,8 @@ jobs:
   - task: test-pull-succeeds
     privileged: true
     file: ci-source/ci/tasks/test-pull-succeeds.yml
+    params: 
+      MIRROR_HOSTNAME: ((staging-mirror-hostname))
   # - task: test-no-push
   #   file: ci-source/ci/tasks/test-no-push.yml
 
