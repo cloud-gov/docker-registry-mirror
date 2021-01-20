@@ -12,12 +12,11 @@ space_guid=$(cf space --guid $CF_SPACE)
 # assemble the conf
 pushd proxy-source/proxy
 
-  cp ../../nginx-conf/* .
+  mkdir nginx
+  cp ../../nginx-conf/nginx.conf nginx
 
   pwd
   ls -al
-
-  export CF_TRACE=true
 
   cf push -f manifest.yml \
     --strategy rolling \
