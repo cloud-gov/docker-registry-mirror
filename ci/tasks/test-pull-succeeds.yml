@@ -6,7 +6,6 @@ image_resource:
     repository: docker
     tag: dind
     
-
 inputs:
 - name: ci-source
 
