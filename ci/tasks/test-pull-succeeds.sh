@@ -4,8 +4,6 @@ set -ex
 
 docker --version
 
-/etc/init.d/docker start
-
 docker pull ${MIRROR_HOSTNAME}.app.cloud.gov:443/18fgsa/concourse-task
 
 if [ $? != 0 ]; then
