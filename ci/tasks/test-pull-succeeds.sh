@@ -1,5 +1,3 @@
-#!/bin/bash
-
 docker --version
 
 docker pull ${MIRROR_HOSTNAME}.app.cloud.gov:443/18fgsa/concourse-task
