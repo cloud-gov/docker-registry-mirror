@@ -62,12 +62,12 @@ jobs:
     tags: [iaas]
     params: 
       <<: *staging-cf
-    on_failure:
-      task: cancel-deployment
-      file: ci-source/ci/tasks/cancel-deployment.yml
-      params:
-        <<: *staging-cf
-        CF_APP_NAME: docker-registry-proxy
+    # on_failure:
+    #   task: cancel-deployment
+    #   file: ci-source/ci/tasks/cancel-deployment.yml
+    #   params:
+    #     <<: *staging-cf
+    #     CF_APP_NAME: docker-registry-proxy
 
 - name: integration-test
   serial_groups: [mirror,proxy]

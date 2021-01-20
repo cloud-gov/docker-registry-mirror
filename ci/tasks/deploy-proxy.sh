@@ -14,7 +14,10 @@ pushd proxy-source/proxy
 
   cp ../../nginx-conf/* .
 
-  cat nginx.conf
+  pwd
+  ls -al
+
+  export CF_TRACE=true
 
   cf push -f manifest.yml \
     --strategy rolling \
