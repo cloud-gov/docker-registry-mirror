@@ -1,0 +1,22 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: docker
+    tag: dind
+    
+
+inputs:
+- name: ci-source
+
+run:
+  path: ci-source/ci/tasks/test-pull-succeeds.sh
+
+params:
+  CF_API:
+  CF_USERNAME:
+  CF_PASSWORD:
+  CF_ORG:
+  CF_SPACE:
+  MIRROR_HOSTNAME:
