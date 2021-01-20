@@ -4,7 +4,7 @@ set -ex
 
 docker --version
 
-sudo /etc/init.d/docker start
+/etc/init.d/docker start
 
 docker pull ${MIRROR_HOSTNAME}.app.cloud.gov:443/18fgsa/concourse-task
 
