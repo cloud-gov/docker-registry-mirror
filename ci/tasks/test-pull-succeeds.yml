@@ -4,7 +4,7 @@ image_resource:
   type: docker-image
   source:
     repository: docker
-    tag: stable
+    tag: dind
     
 inputs:
 - name: ci-source
