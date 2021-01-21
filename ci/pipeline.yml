@@ -89,14 +89,15 @@ jobs:
       passed: [deploy-proxy-staging]
     - get: ci-source
       params: {depth: 1}
-  - task: test-pull-succeeds
+  # Be sure we can pull an image through the mirror using the docker-image resource type
+  - task: test-pull-succeeds-docker-image
     config:
       platform: linux
       image_resource:
         type: docker-image
         source:
           repository: 18fgsa/concourse-task
-          registry_mirror: ((staging-mirror-hostname)).app.cloud.gov:443
+          registry_mirror: "https://((staging-mirror-hostname)).app.cloud.gov:443"
       run:
         path: /bin/sh
         args:
@@ -104,14 +105,27 @@ jobs:
         - |
           date
     # on_failure:
-
-     
-       
-
-  # - task: test-no-push
-  #   file: ci-source/ci/tasks/test-no-push.yml
-
-
+  # Be sure we can pull an image through the mirror using the registry-image resource type
+  - task: test-pull-succeeds-registry-image
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: 18fgsa/concourse-task
+          registry_mirror: 
+            host: "((staging-mirror-hostname)).app.cloud.gov:443"
+      run:
+        path: /bin/sh
+        args:
+        - -ec
+        - |
+          date
+    # on_failure:
+  - task: test-no-push
+    file: ci-source/ci/tasks/test-no-push.yml
+    params:
+      MIRROR_HOSTNAME: ((staging-mirror-hostname))
 
 resources:
 
@@ -155,6 +169,12 @@ resources:
   type: docker-image
   source:
     repository: registry
+
+- name: no-push-image
+  type: docker-image
+  source:
+    repository: 18fgsa/no-push
+    registry_mirror: (())
 
 resource_types:
 
