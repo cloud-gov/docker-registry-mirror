@@ -90,10 +90,24 @@ jobs:
     - get: ci-source
       params: {depth: 1}
   - task: test-pull-succeeds
-    privileged: true
-    file: ci-source/ci/tasks/test-pull-succeeds.yml
-    params: 
-      MIRROR_HOSTNAME: ((staging-mirror-hostname))
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: 18fgsa/concourse-task
+          registry_mirror: ((staging-mirror-hostname)).app.cloud.gov:443
+      run:
+        path: /bin/sh
+        args:
+        - -ec
+        - |
+          date
+    # on_failure:
+
+     
+       
+
   # - task: test-no-push
   #   file: ci-source/ci/tasks/test-no-push.yml
 
