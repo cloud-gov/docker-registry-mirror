@@ -120,5 +120,7 @@ _These notes are intended for cloud.gov platform operators._
 
 - Given that concourse leverages the production mirror for all docker pulls, it seems redundant to repetively run the integration tests against the production instance. Everything we do in concourse, including running the integration tests, is verifying the production mirror.
 
+- The pipeline aims to only trigger jobs if actual inputs change. Therefore, you will see multiple git resources pointed at this repository. We use the `paths` (and `ignore_paths`) property to filter what elements in the repo actually trigger new versions. This is not adding more calls to github as we enable [global resources](https://concourse-ci.org/global-resources.html) in our concourse instance.
+
 
 
