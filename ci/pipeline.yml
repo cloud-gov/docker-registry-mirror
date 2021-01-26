@@ -24,7 +24,9 @@ jobs:
   plan:
   - in_parallel:
     - get: pipeline-config
+      trigger: true
     - get: pipeline-source
+      trigger: true
       params: {depth: 1}
   - set_pipeline: docker-registry-mirror
     file: pipeline-source/ci/pipeline.yml
@@ -127,7 +129,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: hello-world
+          repository: 18fgsa/concourse-task
           registry_mirror: "https://((staging-mirror-hostname)).app.cloud.gov:443"
       run:
         path: /bin/sh
@@ -142,7 +144,7 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: hello-world
+          repository: 18fgsa/concourse-task
           registry_mirror: 
             host: "((staging-mirror-hostname)).app.cloud.gov:443"
       run:
