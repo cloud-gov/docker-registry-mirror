@@ -255,14 +255,12 @@ resources:
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [ci/pipeline.yml]
-    branch: initial-pipeline
 
 - name: ci-source
   type: git
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [ci/*]
-    branch: initial-pipeline
 
 - name: nginx-conf
   type: s3-iam
@@ -277,14 +275,12 @@ resources:
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [proxy/*]
-    branch: initial-pipeline
 
 - name: registry-source
   type: git
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [registry/*]
-    branch: initial-pipeline
 
 - name: docker-registry-image
   type: docker-image
