@@ -2,6 +2,7 @@
 
 The repository automates the deployment of a protected docker registry mirror cache (https://docs.docker.com/registry/recipes/mirror/) deployed to cloud.gov. We use this mirror to reduce our number of pulls from docker hub.
 
+This follows a pattern of protecting an application using a cloud.gov internal network and an nginx proxy.
 
 ## Mirror
 
@@ -36,7 +37,6 @@ name                     requested state   processes   routes
 docker-registry-mirror   started           web:4/4     <hostname>.apps.internal
 docker-registry-proxy    started           web:4/4     <hostname>.app.cloud.gov
 ```
-
 
 ### Advantages
 
@@ -105,3 +105,20 @@ http {
 ```
 
 ## Pipeline notes
+
+_These notes are intended for cloud.gov platform operators._
+
+- This is a self configuring pipeline. Updates to the pipeline.yml or configuration should trigger the `set_pipeline` task automatically.
+
+- We need to be sure any updates run on the production instance of cloud.gov. Therefore, the staging deployment is to production cloud.gov in a separate staging space.
+
+- Deployments to cloud.gov leverage `--strategy rolling` to reduce the possibility of downtime. 
+  - Deployment failures in staging exit immediately without rolling back so that operators can debug any issues.
+  - Deployment failures in production attempt a `cf cancel-deployment` to roll back to the last known good state.
+
+- Production deployments are to be triggered manually. A failure of the mirror will affect all other concourse jobs. Therefore, someone should have awareness of when deployments are happening. A notification will appear in slack when you changes are available.
+
+- Given that concourse leverages the production mirror for all docker pulls, it seems redundant to repetively run the integration tests against the production instance. Everything we do in concourse, including running the integration tests, is verifying the production mirror.
+
+
+
