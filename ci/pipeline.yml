@@ -126,7 +126,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: 18fgsa/concourse-task
+          repository: hello-world
           registry_mirror: "https://((staging-mirror-hostname)).app.cloud.gov:443"
       run:
         path: /bin/sh
@@ -141,7 +141,7 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: 18fgsa/concourse-task
+          repository: hello-world
           registry_mirror: 
             host: "((staging-mirror-hostname)).app.cloud.gov:443"
       run:
