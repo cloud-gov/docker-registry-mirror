@@ -1,6 +1,6 @@
 # docker-registry-mirror
 
-The repository automates the deployment of a protected docker registry mirror cache (https://docs.docker.com/registry/recipes/mirror/) deployed to cloud.gov. We use this mirror to reduce our number of pulls from docker hub.
+The repository automates the deployment of a protected Docker registry mirror cache (https://docs.docker.com/registry/recipes/mirror/) deployed to cloud.gov. We use this mirror to reduce our number of pulls from Docker hub.
 
 This follows a pattern of protecting an application using a cloud.gov internal network and an nginx proxy.
 
@@ -9,13 +9,13 @@ This follows a pattern of protecting an application using a cloud.gov internal n
 The docker registry mirror is deployed as a docker image to cloud.gov (see [deployment manifest](registry/manifest.yml)). The registry uses an S3 bucket for caching images. It is configured as a pull through mirror, with push to the registry disabled. 
 
 - Docker image: https://hub.docker.com/_/registry
-- More information: https://docs.docker.com/registry/recipes/mirror/
+- Registry mirrors: https://docs.docker.com/registry/recipes/mirror/
 
-The mirror is deployed with no security enabled. Basic authentication does not suffice as we have more complicated security rules. Instead, we protect access to the registry using an Nginx proxy.
+The mirror is deployed with no security enabled. Basic authentication does not suffice as we have more complicated security rules. Instead, we protect access to the registry using an nginx proxy.
 
-## Nginx
+## nginx
 
-Nginx is deployed as a security proxy (see [deployment manifest](proxy/manifest.yml)). All traffic to the mirror is routed through Nginx. Because our `nginx.conf` contains security rules, it is not stored in this repo. 
+Nginx is deployed as a security proxy (see [deployment manifest](proxy/manifest.yml)). All traffic to the mirror is routed through nginx. Because our `nginx.conf` contains security rules, it is not stored in this repo. 
 
 ## Deployment topology
 
@@ -92,10 +92,9 @@ http {
 
     deny all;
     location / {
-      # MIRROR_ROUTE is an environment variable with the value of
-      # the mirror app on the `apps.internal` domain. This should be
-      # the route of the app you are proxying.
-      set $backend_servers {{ env "MIRROR_ROUTE" }};
+      # PROXIED_ROUTE is an environment variable with the value of
+      # the route of the app you are proxying (on the `apps.internal` domain).
+      set $backend_servers {{ env "PROXIED_ROUTE" }};
       # In our case, the port is 5000 as this is the port the mirror 
       # runs on. Your port will likely vary.
       proxy_pass http://$backend_servers:<port>;
