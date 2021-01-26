@@ -24,11 +24,12 @@ jobs:
   plan:
   - in_parallel:
     - get: pipeline-config
-
     - get: pipeline-source
       params: {depth: 1}
   - set_pipeline: docker-registry-mirror
     file: pipeline-source/ci/pipeline.yml
+    var_files: 
+      - pipeline-config/docker-registry-mirror.yml
 
 - name: deploy-registry-staging
   serial_groups: [mirror]
