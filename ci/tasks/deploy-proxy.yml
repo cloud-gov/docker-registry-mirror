@@ -1,0 +1,22 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: 18fgsa/concourse-task
+
+inputs:
+- name: nginx-conf
+- name: proxy-source
+- name: ci-source
+
+run:
+  path: ci-source/ci/tasks/deploy-proxy.sh
+
+params:
+  CF_API:
+  CF_USERNAME:
+  CF_PASSWORD:
+  CF_ORG:
+  CF_SPACE:
+  MIRROR_HOSTNAME:

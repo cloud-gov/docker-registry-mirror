@@ -1,0 +1,304 @@
+---
+staging-cf: &staging-cf
+  CF_API: ((staging-cf-api))
+  CF_USERNAME: ((staging-cf-username))
+  CF_PASSWORD: ((staging-cf-password))
+  CF_ORG: ((staging-cf-org))
+  CF_SPACE: ((staging-cf-space))
+  MIRROR_HOSTNAME: ((staging-mirror-hostname))
+
+production-cf: &production-cf
+  CF_API: ((production-cf-api))
+  CF_USERNAME: ((production-cf-username))
+  CF_PASSWORD: ((production-cf-password))
+  CF_ORG: ((production-cf-org))
+  CF_SPACE: ((production-cf-space))
+  MIRROR_HOSTNAME: ((production-mirror-hostname))
+
+jobs:
+
+- name: configure-pipeline
+  serial_groups:
+  - mirror
+  - proxy
+  plan:
+  - in_parallel:
+    - get: pipeline-config
+      trigger: true
+    - get: pipeline-source
+      trigger: true
+      params: {depth: 1}
+  - set_pipeline: docker-registry-mirror
+    file: pipeline-source/ci/pipeline.yml
+    var_files: 
+      - pipeline-config/docker-registry-mirror.yml
+
+- name: deploy-registry-staging
+  serial_groups: [mirror]
+  plan:
+  - in_parallel: 
+    - get: registry-source
+      trigger: true
+      params: {depth: 1}
+    - get: docker-registry-image
+      trigger: true
+    - get: ci-source
+      params: {depth: 1}
+  - task: create-s3-bucket
+    file: ci-source/ci/tasks/create-s3-bucket.yml
+    params:
+      <<: *staging-cf
+  - task: deploy-registry
+    file: ci-source/ci/tasks/deploy-registry.yml
+    params:
+      <<: *staging-cf
+    # Don't cancel the deployment in staging so we can debug the failure
+    # on_failure:
+    #   try:
+    #     task: cancel-deployment
+    #     file: ci-source/ci/tasks/cancel-deployment.yml
+    #     params:
+    #       <<: *staging-cf
+    #       CF_APP_NAME: docker-registry-mirror
+  on_failure:
+    put: slack
+    params: &slack-params
+      text: |
+        :x: FAILED to deploy docker registry mirror to staging. Deployment was not canceled.
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+      channel: ((slack-channel))
+      username: ((slack-username))
+      icon_url: ((slack-icon-url))  
+
+- name: deploy-proxy-staging
+  serial_groups: [proxy]
+  plan:
+  - in_parallel:
+    - get: nginx-conf
+      trigger: true
+    - get: proxy-source
+      trigger: true
+      params: {depth: 1}
+    - get: ci-source
+      params: {depth: 1}
+  - task: deploy-proxy
+    file: ci-source/ci/tasks/deploy-proxy.yml
+    tags: [iaas]
+    params: 
+      <<: *staging-cf
+    # Don't cancel the deployment in staging so we can debug the failure
+    # on_failure:
+    #   try: 
+    #     task: cancel-deployment
+    #     file: ci-source/ci/tasks/cancel-deployment.yml
+    #     params:
+    #       <<: *staging-cf
+    #       CF_APP_NAME: docker-registry-proxy
+  on_failure:
+    put: slack
+    params:
+      <<: *slack-params
+      text: |
+        :x: FAILED to deploy docker registry mirror proxy to staging. Deployment was not canceled.
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+
+- name: integration-test
+  serial_groups: [mirror,proxy]
+  plan:
+  - in_parallel:
+    - get: registry-source
+      trigger: true
+      params: {depth: 1}
+      passed: [deploy-registry-staging]
+    - get: docker-registry-image
+      trigger: true
+      passed: [deploy-registry-staging]
+    - get: nginx-conf
+      trigger: true
+      passed: [deploy-proxy-staging]
+    - get: proxy-source
+      trigger: true
+      params: {depth: 1}
+      passed: [deploy-proxy-staging]
+    - get: ci-source
+      params: {depth: 1}
+  # Be sure we can pull an image through the mirror using the docker-image resource type
+  - task: test-pull-succeeds-docker-image
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: 18fgsa/concourse-task
+          registry_mirror: "https://((staging-mirror-hostname)).app.cloud.gov:443"
+      run:
+        path: /bin/sh
+        args:
+        - -ec
+        - |
+          date
+  # Be sure we can pull an image through the mirror using the registry-image resource type
+  - task: test-pull-succeeds-registry-image
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: 18fgsa/concourse-task
+          registry_mirror: 
+            host: "((staging-mirror-hostname)).app.cloud.gov:443"
+      run:
+        path: /bin/sh
+        args:
+        - -ec
+        - |
+          date
+  - task: test-no-push
+    file: ci-source/ci/tasks/test-no-push.yml
+    params:
+      MIRROR_HOSTNAME: ((staging-mirror-hostname))
+  on_failure:
+    put: slack
+    params:
+      <<: *slack-params
+      text: |
+        :x: Integration tests for docker registry mirror failed in staging
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+  on_success:
+    put: slack
+    params:
+      <<: *slack-params
+      text: |
+        :wave: Integration tests for docker registry mirror passed in staging. Production updates are ready to be deployed.
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+
+- name: deploy-registry-production
+  serial_groups: [mirror]
+  plan:
+  - in_parallel: 
+    - get: registry-source
+      params: {depth: 1}
+      passed: [integration-test]
+    - get: docker-registry-image
+      passed: [integration-test]
+    - get: ci-source
+      params: {depth: 1}
+  - task: create-s3-bucket
+    file: ci-source/ci/tasks/create-s3-bucket.yml
+    params:
+      <<: *production-cf
+  - task: deploy-registry
+    file: ci-source/ci/tasks/deploy-registry.yml
+    params:
+      <<: *production-cf
+    on_failure:
+      try:
+        task: cancel-deployment
+        file: ci-source/ci/tasks/cancel-deployment.yml
+        params:
+          <<: *production-cf
+          CF_APP_NAME: docker-registry-mirror
+  on_failure:
+    put: slack
+    params: &slack-params
+      text: |
+        :x: FAILED to deploy docker registry mirror to production. Deployment was canceled (rolled back). 
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+      channel: ((slack-channel))
+      username: ((slack-username))
+      icon_url: ((slack-icon-url))  
+
+- name: deploy-proxy-production
+  serial_groups: [proxy]
+  plan:
+  - in_parallel:
+    - get: nginx-conf
+      passed: [integration-test]
+    - get: proxy-source
+      params: {depth: 1}
+      passed: [integration-test]
+    - get: ci-source
+      params: {depth: 1}
+  - task: deploy-proxy
+    file: ci-source/ci/tasks/deploy-proxy.yml
+    tags: [iaas]
+    params: 
+      <<: *production-cf
+    on_failure:
+      try: 
+        task: cancel-deployment
+        file: ci-source/ci/tasks/cancel-deployment.yml
+        params:
+          <<: *production-cf
+          CF_APP_NAME: docker-registry-proxy
+  on_failure:
+    put: slack
+    params:
+      <<: *slack-params
+      text: |
+        :x: FAILED to deploy docker registry mirror proxy to production. Deployment was canceled (rolled back).
+        <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|View build details>
+
+resources:
+
+- name: pipeline-config
+  type: s3-iam
+  tags: [iaas]
+  source:
+    bucket: ((concourse-creds-bucket))
+    region_name: ((concourse-creds-bucket-region))
+    versioned_file: docker-registry-mirror.yml
+
+- name: pipeline-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [ci/pipeline.yml]
+
+- name: ci-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [ci/*]
+
+- name: nginx-conf
+  type: s3-iam
+  tags: [iaas]
+  source:
+    bucket: ((concourse-varz-bucket))
+    region_name: ((concourse-varz-bucket-region))
+    versioned_file: docker-registry-mirror/nginx/nginx.conf
+
+- name: proxy-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [proxy/*]
+
+- name: registry-source
+  type: git
+  source:
+    uri: https://github.com/cloud-gov/docker-registry-mirror.git
+    paths: [registry/*]
+
+- name: docker-registry-image
+  type: docker-image
+  source:
+    repository: registry
+
+- name: slack
+  type: slack-notification
+  source:
+    url: ((slack-webhook-url))
+
+resource_types:
+
+- name: s3-iam
+  type: docker-image
+  source:
+    repository: 18fgsa/s3-resource
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
