@@ -254,12 +254,14 @@ resources:
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [ci/pipeline.yml]
+    commit_verification_keys: ((cloud-gov-pgp-keys))
 
 - name: ci-source
   type: git
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [ci/*]
+    commit_verification_keys: ((cloud-gov-pgp-keys))
 
 - name: nginx-conf
   type: s3-iam
@@ -274,12 +276,14 @@ resources:
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [proxy/*]
+    commit_verification_keys: ((cloud-gov-pgp-keys))
 
 - name: registry-source
   type: git
   source:
     uri: https://github.com/cloud-gov/docker-registry-mirror.git
     paths: [registry/*]
+    commit_verification_keys: ((cloud-gov-pgp-keys))
 
 - name: docker-registry-image
   type: docker-image
