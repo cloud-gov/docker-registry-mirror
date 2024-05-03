@@ -6,10 +6,10 @@ image_resource:
     repository: 18fgsa/concourse-task
 
 inputs:
-- name: ci-source
+- name: source
 
 run:
-  path: ci-source/ci/tasks/create-s3-bucket.sh
+  path: source/ci/tasks/create-s3-bucket.sh
 
 params:
   CF_API:

@@ -19,11 +19,10 @@ s3_bucket=$(echo "$svc_key_json" | jq -r '.entity.credentials.bucket')
 s3_region=$(echo "$svc_key_json" | jq -r '.entity.credentials.region')
 s3_secret_key=$(echo "$svc_key_json" | jq -r '.entity.credentials.secret_access_key')
 
-cf push -f registry-source/registry/manifest.yml \
+cf push -f source/registry/manifest.yml \
   --strategy rolling \
   --var s3_access_key="${s3_access_key}" \
   --var s3_bucket="${s3_bucket}" \
   --var s3_region="${s3_region}" \
   --var s3_secret_key="${s3_secret_key}" \
   --var route="${MIRROR_HOSTNAME}.apps.internal"
-  
