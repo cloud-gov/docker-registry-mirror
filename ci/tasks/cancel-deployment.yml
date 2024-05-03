@@ -6,10 +6,10 @@ image_resource:
     repository: 18fgsa/concourse-task
 
 inputs:
-- name: ci-source
+- name: source
 
 run:
-  path: ci-source/ci/tasks/cancel-deployment.sh
+  path: source/ci/tasks/cancel-deployment.sh
 
 params:
   CF_API:

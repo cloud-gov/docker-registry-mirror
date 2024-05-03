@@ -6,12 +6,11 @@ image_resource:
     repository: 18fgsa/concourse-task
 
 inputs:
-- name: registry-source
+- name: source
 - name: docker-registry-image
-- name: ci-source
 
 run:
-  path: ci-source/ci/tasks/deploy-registry.sh
+  path: source/ci/tasks/deploy-registry.sh
 
 params:
   CF_API:

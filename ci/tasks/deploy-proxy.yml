@@ -7,11 +7,10 @@ image_resource:
 
 inputs:
 - name: nginx-conf
-- name: proxy-source
-- name: ci-source
+- name: source
 
 run:
-  path: ci-source/ci/tasks/deploy-proxy.sh
+  path: source/ci/tasks/deploy-proxy.sh
 
 params:
   CF_API:
