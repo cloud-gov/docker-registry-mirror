@@ -1,5 +1,4 @@
 ---
-
 applications:
 - name: docker-registry-mirror
   memory: 256M
@@ -16,4 +15,3 @@ applications:
     REGISTRY_STORAGE_DELETE_ENABLED: true
   routes:
   - route: ((route))
-
