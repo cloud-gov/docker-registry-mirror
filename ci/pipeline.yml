@@ -116,6 +116,7 @@ jobs:
     - get: nginx-conf
       trigger: true
       passed: [deploy-proxy-staging]
+    - get: general-task
   # Be sure we can pull an image through the mirror using the docker-image resource type
   - task: test-pull-succeeds-docker-image
     config:
@@ -148,6 +149,7 @@ jobs:
         - |
           date
   - task: test-no-push
+    image: general-task
     file: source/ci/tasks/test-no-push.yml
     params:
       MIRROR_HOSTNAME: ((staging-mirror-hostname))
@@ -175,17 +177,20 @@ jobs:
       passed: [integration-test]
     - get: docker-registry-image
       passed: [integration-test]
+    - get: general-task
   - task: create-s3-bucket
     file: source/ci/tasks/create-s3-bucket.yml
     params:
       <<: *production-cf
   - task: deploy-registry
+    image: general-task
     file: source/ci/tasks/deploy-registry.yml
     params:
       <<: *production-cf
     on_failure:
       try:
         task: cancel-deployment
+        image: general-task
         file: source/ci/tasks/cancel-deployment.yml
         params:
           <<: *production-cf
@@ -209,7 +214,9 @@ jobs:
     - get: source
       params: {depth: 1}
       passed: [integration-test]
+    - get: general-task
   - task: deploy-proxy
+    image: general-task
     file: source/ci/tasks/deploy-proxy.yml
     tags: [iaas]
     params:
@@ -217,6 +224,7 @@ jobs:
     on_failure:
       try:
         task: cancel-deployment
+        image: general-task
         file: source/ci/tasks/cancel-deployment.yml
         params:
           <<: *production-cf
