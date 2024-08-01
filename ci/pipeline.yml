@@ -124,7 +124,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: ubuntu:22.04
+          repository: ubuntu
+          tag: 22.04
           registry_mirror: "https://((staging-mirror-hostname)).app.cloud.gov:443"
       run:
         path: /bin/sh
@@ -139,7 +140,8 @@ jobs:
       image_resource:
         type: registry-image
         source:
-          repository: ubuntu:22.04
+          repository: ubuntu
+          tag: 22.04
           registry_mirror:
             host: "((staging-mirror-hostname)).app.cloud.gov:443"
       run:
