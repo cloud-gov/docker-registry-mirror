@@ -248,6 +248,7 @@ resources:
     bucket: ((concourse-creds-bucket))
     region_name: ((concourse-creds-bucket-region))
     versioned_file: docker-registry-mirror.yml
+    endpoint: s3-fips.((aws-region)).amazonaws.com
 
 - name: nginx-conf
   type: s3-iam
@@ -256,6 +257,7 @@ resources:
     bucket: ((concourse-varz-bucket))
     region_name: ((concourse-varz-bucket-region))
     versioned_file: docker-registry-mirror/nginx/nginx.conf
+    endpoint: s3-fips.((aws-region)).amazonaws.com
 
 - name: source
   type: git
