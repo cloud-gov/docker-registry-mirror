@@ -22,11 +22,11 @@ if [ 0 = $svc_instance_count ]; then
 else
   echo "Service instance $svc_instance_name already exists. Skipping creation."
 fi
-svc_instance_guid=$(echo "$svc_instance_json" | jq -r '.resources[0].guid')
+svc_instance_guid="$(cf service ${svc_instance_name} --guid)"
 
 # ensure the service key exists
-svc_keys_json=$(cf curl "/v2/service_keys?q=service_instance_guid:${svc_instance_guid}&q=name:${svc_key_name}")
-svc_key_count=$(echo "$svc_keys_json" | jq -r '.total_results')
+svc_keys_json=$(cf curl "/v3/service_credential_bindings?type=key&service_instance_names=${svc_instance_name}&names=${svc_key_name}")
+svc_key_count=$(echo "$svc_keys_json" | jq -r '.pagination.total_results')
 if [ 0 = $svc_key_count ]; then
   echo "Creating service key $svc_key_name."
   cf create-service-key $svc_instance_name $svc_key_name
